@@ -1,0 +1,3 @@
+Playing with numbers - it's pretty...
+=========
+An experiement with HTML5 canvas that makes a hypnotic pattern on the screen.
