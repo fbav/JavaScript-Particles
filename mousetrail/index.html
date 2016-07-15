@@ -1,0 +1,32 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>HTML5 canvas experiment with particles</title>
+    <link rel="stylesheet" href="css/main.css" />
+    <script type="text/javascript" src="scripts/modernizr-1.5.min.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
+
+    <script type="text/javascript" src="scripts/vector.js"></script>
+    <script type="text/javascript" src="scripts/particle.js"></script>
+    <script type="text/javascript" src="scripts/particleSystem.js"></script>
+    <script type="text/javascript" src="scripts/visualization.js"></script>
+    <script>
+        $(document).ready(function () {
+            viz = new Visualization();
+
+            if (Modernizr.canvas) {
+                viz.init("viz");
+            } else {
+                alert("I'm afraid you browser doesn'y appear to support this type of thing.");
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <canvas id="viz"></canvas>
+</body>
+
+</html>
