@@ -1,0 +1,236 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <title>particles</title>
+    <meta charset="utf-8">
+    <style type="text/css">
+        body {
+            background-color: #000000;
+            margin: 0px;
+            overflow: hidden;
+        }
+    </style>
+    <script type="text/javascript" src="scripts/ImageParticle.js"></script>
+</head>
+
+<body>
+    <canvas id="dst" width="1200" height="800" style='position: absolute; z-index: 1'>DIE IE!</canvas>
+    <script type="text/javascript">
+        var STAGE_WIDTH = window.innerWidth,
+            STAGE_HEIGHT = window.innerHeight,
+            HALF_WIDTH = window.innerWidth / 2,
+            HALF_HEIGHT = window.innerHeight / 2,
+            MASK_WIDTH = 300,
+            MASK_HEIGHT = 200,
+
+            canvas = document.createElement('canvas'),
+            context = canvas.getContext('2d'),
+            mouseX = HALF_WIDTH,
+            mouseY = HALF_HEIGHT * 1.5,
+            mouseDown = false,
+
+            smokeTrail = document.getElementById("dst"),
+            smokeTrailCTX = smokeTrail.getContext("2d"),
+
+            particles = [],
+            mouseParticles = [],
+            MAX_PARTICLES = 200,
+            particleImage = new Image(),
+            particleMouseImage = new Image()
+
+        window.requestAnimFrame = (function (callback) {
+            return window.requestAnimationFrame ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame ||
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function (callback) {
+                    window.setTimeout(callback, 1000 / 60);
+                };
+        })();
+
+        var mouseMoving = false;
+
+        var frame = 0;
+        var lastUpdateTime = 0;
+        var acDelta = 0;
+
+        init();
+
+        //setInterval(animateMouse, 85);
+
+        function setFramerate() {
+            requestAnimFrame(function () {
+                setFramerate();
+            });
+
+            var delta = Date.now() - lastUpdateTime;
+            if (acDelta > 60) {
+                acDelta = 0;
+                animate();
+                animateMouse();
+                frame++;
+                if (frame >= 6) frame = 0;
+            } else {
+                acDelta += delta;
+            }
+
+            lastUpdateTime = Date.now();
+        }
+
+
+        function init() {
+
+            setFramerate();
+            mouseX = -1000;
+            mouseY = -1000;
+            container = document.createElement('div');
+            document.body.appendChild(container);
+
+            container.style.position = 'absolute';
+            container.style.left = "0px";
+            container.style.top = "0px";
+            container.style.zIndex = 2;
+
+            container.appendChild(canvas);
+            canvas.width = STAGE_WIDTH;
+            canvas.height = STAGE_HEIGHT;
+
+            //particleImage.src = 'images/ParticleSmoke2.png';
+            particleMouseImage.src = 'images/wisp13.png';
+            //particleImage.src = 'images/wisp14a.png';
+            particleImage.src = 'images/smoke_01.png';
+
+            document.addEventListener('touchstart', onTouchStart, false);
+            document.addEventListener('touchend', onTouchEnd, false);
+            document.addEventListener('mousedown', onMouseDown, false);
+            document.addEventListener('mouseup', onMouseUp, false);
+        }
+
+        function onMouseMove(e) {
+
+            e.preventDefault();
+
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        }
+
+        function onTouchMove(e) {
+
+            e.preventDefault();
+            var targetEvent = e.touches.item(0);
+
+            mouseX = targetEvent.clientX;
+            mouseY = targetEvent.clientY;
+        }
+
+        function onTouchStart(e) {
+            e.preventDefault();
+            document.addEventListener('touchmove', onTouchMove, false);
+        }
+
+        function onTouchEnd(e) {
+            e.preventDefault();
+            mouseX = -1000;
+            mouseY = -1000;
+            document.removeEventListener('touchmove', onTouchMove);
+        }
+
+        function onMouseDown(e) {
+            e.preventDefault();
+            document.addEventListener('mousemove', onMouseMove, false);
+        }
+
+        function onMouseUp(e) {
+            e.preventDefault();
+            mouseX = -1000;
+            mouseY = -1000;
+            document.removeEventListener('mousemove', onMouseMove);
+        }
+
+        function animate() {
+
+            //makeParticle(1, -50, STAGE_HEIGHT/1.4);
+            makeParticle(1, -150, STAGE_HEIGHT + 100);
+            makeParticle(1, STAGE_WIDTH + 150, STAGE_HEIGHT + 100, "RtoL");
+            // makeParticle(1, STAGE_WIDTH+150, STAGE_HEIGHT/1.2, "RtoL");
+            // makeParticle(1, STAGE_WIDTH+180, STAGE_HEIGHT/4, "RtoL");
+            // makeParticle(1, STAGE_WIDTH+180, STAGE_HEIGHT, "RtoL");
+
+            //context.fillStyle="rgb(0,0,0)";
+            context.fillStyle = "rgba(0,0,0,0.8)";
+            context.fillRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+
+            for (i = 0; i < particles.length; i++) {
+                var particle = particles[i];
+                particle.render(context);
+                particle.update();
+            }
+
+            while (particles.length > MAX_PARTICLES)
+                particles.shift();
+        }
+
+        function animateMouse() {
+
+            makeMouseParticle(3, mouseX, mouseY, '', 'xor');
+
+            for (i = 0; i < mouseParticles.length; i++) {
+                var particle = mouseParticles[i];
+                particle.render(context);
+                particle.update();
+            }
+
+            while (mouseParticles.length > MAX_PARTICLES)
+                mouseParticles.shift();
+        }
+
+        function makeParticle(particleCount, xpos, ypos, xDir, compositeOp) {
+
+            for (var i = 0; i < particleCount; i++) {
+                var particle = new ImageParticle(particleImage, xpos, ypos, xDir);
+
+                particle.velX = randomRange(-0.3, 0.3);
+                particle.velY = randomRange(-0.9, 0.9);
+                particle.size = randomRange(0.2, 0.5); //randomRange(0.05,0.2);
+                particle.maxSize = 2;
+                particle.alpha = randomRange(0.01, 0.2);
+                particle.gravity = randomRange(-0.2, 0.5);
+                particle.drag = 0.96;
+                particle.shrink = 1.04;
+                particle.fade = 0.002;
+                particle.rotation = randomRange(0, 360);
+                particle.spin = randomRange(-5, 5);
+
+                particle.compositeOperation = (compositeOp == "") ? "source-atop" : compositeOp;
+                particles.push(particle);
+            }
+        }
+
+        function makeMouseParticle(particleCount, xpos, ypos, xDir, compositeOp) {
+
+            for (var i = 0; i < particleCount; i++) {
+                var particle = new ImageParticle(particleMouseImage, xpos, ypos, xDir);
+
+                particle.velX = randomRange(-0.5, 0.5);
+                particle.velY = 0;
+                particle.size = randomRange(0.05, 0.3);
+                particle.maxSize = 0.4;
+                particle.alpha = randomRange(0.01, 0.3);
+                particle.gravity = 0;
+                particle.drag = 0;
+                particle.shrink = 2.04;
+                particle.fade = 0.02;
+                particle.rotation = randomRange(0, 90);
+                particle.spin = randomRange(-5, 5);
+
+                particle.compositeOperation = (compositeOp == "") ? "source-atop" : compositeOp;
+                mouseParticles.push(particle);
+            }
+        }
+    </script>
+    <div><img src="images/ship.jpg" /></div>
+</body>
+
+</html>
